@@ -36,6 +36,132 @@ Add to your config (`~/Library/Application Support/Claude/claude_desktop_config.
 }
 ```
 
+### OpenAI Codex CLI
+
+```bash
+codex mcp add testpad --env TESTPAD_API_TOKEN=your_token_here -- npx -y github:shapehq/mcp-testpad
+```
+
+Or add to `~/.codex/config.toml`:
+
+```toml
+[mcp_servers.testpad]
+command = "npx"
+args = ["-y", "github:shapehq/mcp-testpad"]
+
+[mcp_servers.testpad.env]
+TESTPAD_API_TOKEN = "your_token_here"
+```
+
+### Cursor
+
+Add to `~/.cursor/mcp.json` (global) or `.cursor/mcp.json` (project):
+
+```json
+{
+  "mcpServers": {
+    "testpad": {
+      "command": "npx",
+      "args": ["-y", "github:shapehq/mcp-testpad"],
+      "env": {
+        "TESTPAD_API_TOKEN": "your_token_here"
+      }
+    }
+  }
+}
+```
+
+### Windsurf
+
+Add to `~/.codeium/windsurf/mcp_config.json`:
+
+```json
+{
+  "mcpServers": {
+    "testpad": {
+      "command": "npx",
+      "args": ["-y", "github:shapehq/mcp-testpad"],
+      "env": {
+        "TESTPAD_API_TOKEN": "your_token_here"
+      }
+    }
+  }
+}
+```
+
+### VS Code (Copilot)
+
+Add to `.vscode/mcp.json` in your workspace:
+
+```json
+{
+  "servers": {
+    "testpad": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["-y", "github:shapehq/mcp-testpad"],
+      "env": {
+        "TESTPAD_API_TOKEN": "your_token_here"
+      }
+    }
+  }
+}
+```
+
+### JetBrains IDEs
+
+Go to **Settings > Tools > AI Assistant > Model Context Protocol (MCP)**, click **Add**, and paste:
+
+```json
+{
+  "mcpServers": {
+    "testpad": {
+      "command": "npx",
+      "args": ["-y", "github:shapehq/mcp-testpad"],
+      "env": {
+        "TESTPAD_API_TOKEN": "your_token_here"
+      }
+    }
+  }
+}
+```
+
+### Zed
+
+Add to your settings (`~/.config/zed/settings.json`):
+
+```json
+{
+  "context_servers": {
+    "testpad": {
+      "command": "npx",
+      "args": ["-y", "github:shapehq/mcp-testpad"],
+      "env": {
+        "TESTPAD_API_TOKEN": "your_token_here"
+      }
+    }
+  }
+}
+```
+
+### Amazon Q Developer
+
+Add to `~/.aws/amazonq/mcp.json`:
+
+```json
+{
+  "mcpServers": {
+    "testpad": {
+      "command": "npx",
+      "args": ["-y", "github:shapehq/mcp-testpad"],
+      "env": {
+        "TESTPAD_API_TOKEN": "your_token_here"
+      }
+    }
+  }
+}
+```
+
 ## Available Tools
 
 ### Projects

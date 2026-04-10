@@ -1,0 +1,35 @@
+{
+  "name": "mcp-testpad",
+  "version": "1.0.0",
+  "description": "MCP server for TestPad test case management API",
+  "main": "dist/index.js",
+  "type": "module",
+  "bin": {
+    "mcp-testpad": "dist/index.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "dev": "tsc --watch"
+  },
+  "keywords": [
+    "mcp",
+    "testpad",
+    "testing",
+    "test-management",
+    "model-context-protocol"
+  ],
+  "author": "SelimMouelhi96",
+  "license": "MIT",
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.29.0",
+    "zod": "^4.3.6"
+  },
+  "devDependencies": {
+    "@types/node": "^25.6.0",
+    "typescript": "^6.0.2"
+  }
+}

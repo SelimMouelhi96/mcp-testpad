@@ -10,9 +10,13 @@ export class TestPadClient {
   private async request<T>(
     method: "GET" | "POST" | "PATCH",
     path: string,
-    body?: unknown
+    body?: unknown,
+    params?: Record<string, string>
   ): Promise<T> {
-    const url = `${BASE_URL}${path}`;
+    let url = `${BASE_URL}${path}`;
+    if (params && Object.keys(params).length > 0) {
+      url += `?${new URLSearchParams(params).toString()}`;
+    }
     const headers: Record<string, string> = {
       Authorization: `apikey ${this.token}`,
       "Content-Type": "application/json",
@@ -44,14 +48,16 @@ export class TestPadClient {
   }
 
   // Folders
-  async getFolders(projectId: number) {
-    return this.request<unknown>("GET", `/projects/${projectId}/folders`);
+  async getFolders(projectId: number, params?: Record<string, string>) {
+    return this.request<unknown>("GET", `/projects/${projectId}/folders`, undefined, params);
   }
 
-  async getFolder(projectId: number, folderId: string) {
+  async getFolder(projectId: number, folderId: string, params?: Record<string, string>) {
     return this.request<unknown>(
       "GET",
-      `/projects/${projectId}/folders/${folderId}`
+      `/projects/${projectId}/folders/${folderId}`,
+      undefined,
+      params
     );
   }
 
@@ -108,8 +114,8 @@ export class TestPadClient {
     );
   }
 
-  async getScript(scriptId: number) {
-    return this.request<unknown>("GET", `/scripts/${scriptId}`);
+  async getScript(scriptId: number, params?: Record<string, string>) {
+    return this.request<unknown>("GET", `/scripts/${scriptId}`, undefined, params);
   }
 
   // Test Runs
@@ -117,7 +123,8 @@ export class TestPadClient {
     scriptId: number,
     data: {
       headers?: Record<string, string>;
-      results?: Record<string, string>;
+      results?: Record<string, unknown>;
+      completed?: boolean | "auto";
     }
   ) {
     return this.request<unknown>("POST", `/scripts/${scriptId}/runs`, data);

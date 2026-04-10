@@ -13,6 +13,118 @@ if (!token) {
 
 const client = new TestPadClient(token);
 
+// ── Helpers & shared schemas ────────────────────────────────────────────────
+
+function buildParams(
+  obj: Record<string, string | undefined>
+): Record<string, string> | undefined {
+  const out: Record<string, string> = {};
+  for (const [k, v] of Object.entries(obj)) {
+    if (v !== undefined) out[k] = v;
+  }
+  return Object.keys(out).length > 0 ? out : undefined;
+}
+
+// Query-param schemas (reused across multiple tools)
+const testsParam = z
+  .enum(["yes", "no"])
+  .optional()
+  .describe("Include test items (default: yes)");
+const testswithParam = z
+  .enum(["tags"])
+  .optional()
+  .describe("Include extra test data, e.g. 'tags'");
+const runsParam = z
+  .enum(["yes", "no"])
+  .optional()
+  .describe("Include test runs (default: yes)");
+const resultsParam = z
+  .enum(["yes", "no"])
+  .optional()
+  .describe("Include run results (default: yes)");
+const fieldsParam = z
+  .enum(["yes", "no"])
+  .optional()
+  .describe("Include custom field definitions (default: no)");
+const progressParam = z
+  .enum(["yes", "no"])
+  .optional()
+  .describe("Include progress summary (default: no)");
+const retestsParam = z
+  .enum(["yes", "no"])
+  .optional()
+  .describe("Include retest information (default: no)");
+const subfoldersParam = z
+  .enum(["yes", "no"])
+  .optional()
+  .describe("Include subfolders (default: yes)");
+const scriptsQueryParam = z
+  .enum(["yes", "no"])
+  .optional()
+  .describe("Include scripts (default: yes)");
+
+// Test item schema (for create_script)
+const testItemSchema = z.object({
+  name: z.string().describe("Test step description"),
+  indent: z
+    .number()
+    .optional()
+    .describe(
+      "Indentation level (0=test case header, 1=section, 2=step). Defaults to 0."
+    ),
+  tags: z
+    .string()
+    .optional()
+    .describe("Comma-separated tags for the test item"),
+});
+
+// Field definition schema (for create_script)
+const fieldDefSchema = z.union([
+  z.string().describe("Field name (string shorthand)"),
+  z
+    .object({
+      name: z.string().describe("Field name"),
+      type: z
+        .enum(["text", "number", "date", "dropdown"])
+        .optional()
+        .describe("Field type"),
+      values: z
+        .array(z.string())
+        .optional()
+        .describe("Allowed values (for dropdown type)"),
+    })
+    .describe("Field definition object"),
+]);
+
+// Test result value (the status string)
+const testResultString = z
+  .enum(["pass", "fail", "blocked", "query", "exclude"])
+  .describe("Test result status");
+
+// Array format: [result, comment?, issue?]
+const testResultArray = z
+  .tuple([testResultString])
+  .rest(z.string())
+  .describe(
+    'Array format: [result] or [result, comment] or [result, comment, issue]'
+  );
+
+// Object format: { result, comment?, issue? }
+const testResultObject = z
+  .object({
+    result: testResultString,
+    comment: z.string().optional().describe("Optional comment for the result"),
+    issue: z.string().optional().describe("Optional issue tracker reference"),
+  })
+  .describe("Object format with named fields");
+
+// Union of all result formats
+const testResultValue = z.union([
+  testResultString,
+  testResultArray,
+  testResultObject,
+]);
+
 const server = new McpServer({
   name: "mcp-testpad",
   version: "1.0.0",
@@ -44,9 +156,21 @@ server.tool(
 server.tool(
   "get_folders",
   "Get all folders (nested content tree) for a project",
-  { project_id: z.number().describe("The project ID") },
-  async ({ project_id }) => {
-    const data = await client.getFolders(project_id);
+  {
+    project_id: z.number().describe("The project ID"),
+    subfolders: subfoldersParam,
+    scripts: scriptsQueryParam,
+    tests: testsParam,
+    testswith: testswithParam,
+    fields: fieldsParam,
+    runs: runsParam,
+    retests: retestsParam,
+    results: resultsParam,
+    progress: progressParam,
+  },
+  async ({ project_id, subfolders, scripts, tests, testswith, fields, runs, retests, results, progress }) => {
+    const params = buildParams({ subfolders, scripts, tests, testswith, fields, runs, retests, results, progress });
+    const data = await client.getFolders(project_id, params);
     return { content: [{ type: "text", text: JSON.stringify(data, null, 2) }] };
   }
 );
@@ -57,9 +181,19 @@ server.tool(
   {
     project_id: z.number().describe("The project ID"),
     folder_id: z.string().describe("The folder ID"),
+    subfolders: subfoldersParam,
+    scripts: scriptsQueryParam,
+    tests: testsParam,
+    testswith: testswithParam,
+    fields: fieldsParam,
+    runs: runsParam,
+    retests: retestsParam,
+    results: resultsParam,
+    progress: progressParam,
   },
-  async ({ project_id, folder_id }) => {
-    const data = await client.getFolder(project_id, folder_id);
+  async ({ project_id, folder_id, subfolders, scripts, tests, testswith, fields, runs, retests, results, progress }) => {
+    const params = buildParams({ subfolders, scripts, tests, testswith, fields, runs, retests, results, progress });
+    const data = await client.getFolder(project_id, folder_id, params);
     return { content: [{ type: "text", text: JSON.stringify(data, null, 2) }] };
   }
 );
@@ -110,9 +244,19 @@ server.tool(
 server.tool(
   "get_script",
   "Get a specific test script with its tests and runs",
-  { script_id: z.number().describe("The script ID") },
-  async ({ script_id }) => {
-    const data = await client.getScript(script_id);
+  {
+    script_id: z.number().describe("The script ID"),
+    tests: testsParam,
+    testswith: testswithParam,
+    runs: runsParam,
+    results: resultsParam,
+    fields: fieldsParam,
+    progress: progressParam,
+    retests: retestsParam,
+  },
+  async ({ script_id, tests, testswith, runs, results, fields, progress, retests }) => {
+    const params = buildParams({ tests, testswith, runs, results, fields, progress, retests });
+    const data = await client.getScript(script_id, params);
     return { content: [{ type: "text", text: JSON.stringify(data, null, 2) }] };
   }
 );
@@ -124,16 +268,25 @@ server.tool(
     project_id: z.number().describe("The project ID"),
     name: z.string().describe("Name for the test script"),
     tests: z
-      .array(
-        z.object({
-          name: z.string().describe("Test step description"),
-        })
-      )
+      .array(testItemSchema)
       .optional()
       .describe("Array of test steps to include in the script"),
+    fields: z
+      .array(fieldDefSchema)
+      .optional()
+      .describe("Custom field definitions for the script"),
   },
-  async ({ project_id, name, tests }) => {
-    const data = await client.createScript(project_id, { name, tests });
+  async ({ project_id, name, tests, fields }) => {
+    const mappedTests = tests?.map((t) => ({
+      text: t.name,
+      ...(t.indent !== undefined ? { indent: t.indent } : {}),
+      ...(t.tags !== undefined ? { tags: t.tags } : {}),
+    }));
+    const data = await client.createScript(project_id, {
+      name,
+      tests: mappedTests,
+      ...(fields !== undefined ? { fields } : {}),
+    });
     return { content: [{ type: "text", text: JSON.stringify(data, null, 2) }] };
   }
 );
@@ -146,18 +299,24 @@ server.tool(
     folder_id: z.string().describe("The folder ID"),
     name: z.string().describe("Name for the test script"),
     tests: z
-      .array(
-        z.object({
-          name: z.string().describe("Test step description"),
-        })
-      )
+      .array(testItemSchema)
       .optional()
       .describe("Array of test steps to include in the script"),
+    fields: z
+      .array(fieldDefSchema)
+      .optional()
+      .describe("Custom field definitions for the script"),
   },
-  async ({ project_id, folder_id, name, tests }) => {
+  async ({ project_id, folder_id, name, tests, fields }) => {
+    const mappedTests = tests?.map((t) => ({
+      text: t.name,
+      ...(t.indent !== undefined ? { indent: t.indent } : {}),
+      ...(t.tags !== undefined ? { tags: t.tags } : {}),
+    }));
     const data = await client.createScriptInFolder(project_id, folder_id, {
       name,
-      tests,
+      tests: mappedTests,
+      ...(fields !== undefined ? { fields } : {}),
     });
     return { content: [{ type: "text", text: JSON.stringify(data, null, 2) }] };
   }
@@ -167,7 +326,7 @@ server.tool(
 
 server.tool(
   "add_test_run",
-  "Submit test run results for a script. Results map test IDs to pass/fail status.",
+  "Submit test run results for a script. Results map test IDs to a status string, an array [result, comment?, issue?], or an object {result, comment?, issue?}.",
   {
     script_id: z.number().describe("The script ID"),
     headers: z
@@ -177,14 +336,24 @@ server.tool(
         "Custom metadata headers (e.g. build version, environment). Only pre-defined header fields are accepted."
       ),
     results: z
-      .record(z.string(), z.string())
+      .record(z.string(), testResultValue)
       .optional()
       .describe(
-        'Test results mapping test ID to status (e.g. {"2": "pass", "3": "fail"})'
+        'Test results mapping test ID to: a status string ("pass","fail","blocked","query","exclude"), an array [result, comment?, issue?], or an object {result, comment?, issue?}'
+      ),
+    completed: z
+      .union([z.boolean(), z.literal("auto")])
+      .optional()
+      .describe(
+        'Whether the run is complete. true = mark complete, false = leave in progress, "auto" = complete if all tests have results.'
       ),
   },
-  async ({ script_id, headers, results }) => {
-    const data = await client.addTestRun(script_id, { headers, results });
+  async ({ script_id, headers, results, completed }) => {
+    const data = await client.addTestRun(script_id, {
+      headers,
+      results: results as Record<string, unknown> | undefined,
+      completed,
+    });
     return { content: [{ type: "text", text: JSON.stringify(data, null, 2) }] };
   }
 );

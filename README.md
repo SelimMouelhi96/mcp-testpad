@@ -1,6 +1,6 @@
 # mcp-testpad
 
-MCP server for the [TestPad](https://testpad.com) test case management API. Gives AI assistants access to your TestPad projects, folders, scripts, test runs, and notes.
+MCP server for the [TestPad](https://testpad.com) test case management API. Gives AI assistants access to your TestPad projects, folders, scripts, test runs, and notes — 15 tools in total.
 
 ## Prerequisites
 
@@ -10,13 +10,13 @@ MCP server for the [TestPad](https://testpad.com) test case management API. Give
 
 ## Setup
 
-### Claude Code (one command)
+### Claude Code
 
 ```bash
 claude mcp add testpad -e TESTPAD_API_TOKEN=your_token_here -- npx -y github:shapehq/mcp-testpad
 ```
 
-Replace `your_token_here` with your TestPad API token. Restart Claude Code to activate.
+Then restart Claude Code.
 
 ### Claude Desktop
 

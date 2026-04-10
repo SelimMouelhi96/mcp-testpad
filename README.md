@@ -10,21 +10,15 @@ MCP server for the [TestPad](https://testpad.com) test case management API. Give
 
 ## Setup
 
-### 1. Clone and build
+### Claude Code (one command)
 
 ```bash
-git clone https://github.com/SelimMouelhi96/mcp-testpad.git
-cd mcp-testpad
-npm install && npm run build
+claude mcp add testpad -e TESTPAD_API_TOKEN=your_token_here -- npx -y github:SelimMouelhi96/mcp-testpad
 ```
 
-### 2. Add to Claude Code
+Replace `your_token_here` with your TestPad API token. Restart Claude Code to activate.
 
-```bash
-claude mcp add testpad -e TESTPAD_API_TOKEN=your_token_here -- node /absolute/path/to/mcp-testpad/dist/index.js
-```
-
-### 3. Add to Claude Desktop
+### Claude Desktop
 
 Add to your config (`~/Library/Application Support/Claude/claude_desktop_config.json` on macOS):
 
@@ -32,8 +26,8 @@ Add to your config (`~/Library/Application Support/Claude/claude_desktop_config.
 {
   "mcpServers": {
     "testpad": {
-      "command": "node",
-      "args": ["/absolute/path/to/mcp-testpad/dist/index.js"],
+      "command": "npx",
+      "args": ["-y", "github:SelimMouelhi96/mcp-testpad"],
       "env": {
         "TESTPAD_API_TOKEN": "your_token_here"
       }

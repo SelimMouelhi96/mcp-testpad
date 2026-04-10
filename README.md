@@ -82,6 +82,7 @@ Add to your project's `.mcp.json`:
 | `get_script` | Get a script with its tests and runs |
 | `create_script` | Create a script at project root |
 | `create_script_in_folder` | Create a script inside a folder |
+| `modify_script` | Update a script's name, description, or test items |
 
 ### Test Runs
 | Tool | Description |
@@ -99,6 +100,7 @@ Add to your project's `.mcp.json`:
 
 - **No DELETE**: Objects cannot be deleted via the API
 - **PATCH only**: No PUT/wholesale replacement — only partial updates
+- **No tags via API**: Tags cannot be created or modified through the public API — they can only be managed through the TestPad web UI
 - **Header fields**: Cannot create new header field types via API (must be pre-defined in script)
 - **No retests**: Cannot create retest runs through the API
 - **Archived projects**: Not included in list responses

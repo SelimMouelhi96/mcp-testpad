@@ -118,6 +118,10 @@ export class TestPadClient {
     return this.request<unknown>("GET", `/scripts/${scriptId}`, undefined, params);
   }
 
+  async modifyScript(scriptId: number, data: unknown, params?: Record<string, string>) {
+    return this.request<unknown>("PATCH", `/scripts/${scriptId}`, data, params);
+  }
+
   // Test Runs
   async addTestRun(
     scriptId: number,

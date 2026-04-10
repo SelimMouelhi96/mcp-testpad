@@ -31,9 +31,9 @@ const testsParam = z
   .optional()
   .describe("Include test items (default: yes)");
 const testswithParam = z
-  .enum(["tags"])
+  .enum(["hashtags"])
   .optional()
-  .describe("Include extra test data, e.g. 'tags'");
+  .describe("Include extra test data: 'hashtags' returns tags on test items");
 const runsParam = z
   .enum(["yes", "no"])
   .optional()
@@ -318,6 +318,34 @@ server.tool(
       tests: mappedTests,
       ...(fields !== undefined ? { fields } : {}),
     });
+    return { content: [{ type: "text", text: JSON.stringify(data, null, 2) }] };
+  }
+);
+
+server.tool(
+  "modify_script",
+  "Modify an existing test script (partial update). Can update name, description, and test items (text, indent).",
+  {
+    script_id: z.number().describe("The script ID"),
+    name: z.string().optional().describe("New name for the script"),
+    description: z.string().optional().describe("New description for the script"),
+    tests: z
+      .array(
+        z.object({
+          id: z.number().describe("The test item ID to modify"),
+          text: z.string().optional().describe("New text for the test item"),
+          indent: z.number().optional().describe("New indentation level"),
+        })
+      )
+      .optional()
+      .describe("Array of test items to update (identified by id)"),
+  },
+  async ({ script_id, name, description, tests }) => {
+    const body: Record<string, unknown> = {};
+    if (name !== undefined) body.name = name;
+    if (description !== undefined) body.description = description;
+    if (tests !== undefined) body.tests = tests;
+    const data = await client.modifyScript(script_id, body);
     return { content: [{ type: "text", text: JSON.stringify(data, null, 2) }] };
   }
 );

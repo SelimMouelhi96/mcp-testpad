@@ -62,6 +62,27 @@ const scriptsQueryParam = z
   .enum(["yes", "no"])
   .optional()
   .describe("Include scripts (default: yes)");
+const scriptContentParam = z
+  .enum(["no", "yes", "terse", "full"])
+  .optional();
+const scriptTestsParam = scriptContentParam.describe(
+  "Include test items. For get_script, the API default is full."
+);
+const scriptRunsParam = scriptContentParam.describe(
+  "Include test runs. For get_script, the API default is full."
+);
+const scriptResultsParam = scriptContentParam.describe(
+  "Include run results. For get_script, the API default is full."
+);
+const scriptFieldsParam = scriptContentParam.describe(
+  "Include custom field definitions. For get_script, the API default is full."
+);
+const scriptProgressParam = scriptContentParam.describe(
+  "Include progress summary. For get_script, the API default is terse."
+);
+const scriptRetestsParam = scriptContentParam.describe(
+  "Include retest information when supported by the API."
+);
 
 // Test item schema (for create_script)
 const testItemSchema = z.object({
@@ -246,13 +267,13 @@ server.tool(
   "Get a specific test script with its tests and runs",
   {
     script_id: z.number().describe("The script ID"),
-    tests: testsParam,
+    tests: scriptTestsParam,
     testswith: testswithParam,
-    runs: runsParam,
-    results: resultsParam,
-    fields: fieldsParam,
-    progress: progressParam,
-    retests: retestsParam,
+    runs: scriptRunsParam,
+    results: scriptResultsParam,
+    fields: scriptFieldsParam,
+    progress: scriptProgressParam,
+    retests: scriptRetestsParam,
   },
   async ({ script_id, tests, testswith, runs, results, fields, progress, retests }) => {
     const params = buildParams({ tests, testswith, runs, results, fields, progress, retests });

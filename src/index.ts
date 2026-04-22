@@ -25,66 +25,94 @@ function buildParams(
   return Object.keys(out).length > 0 ? out : undefined;
 }
 
+const testswithValues = ["none", "hashtags", "ids", "_ids"] as const;
+
+function enumListParam<T extends readonly [string, ...string[]]>(
+  values: T,
+  description: string
+) {
+  const allowed = new Set<string>(values);
+  return z
+    .string()
+    .optional()
+    .refine(
+      (value) =>
+        value === undefined ||
+        value
+          .split(",")
+          .map((item) => item.trim())
+          .filter(Boolean)
+          .every((item) => allowed.has(item)),
+      {
+        message: `Expected a comma-separated list from: ${values.join(", ")}`,
+      }
+    )
+    .describe(description);
+}
+
 // Query-param schemas (reused across multiple tools)
 const testsParam = z
-  .enum(["yes", "no"])
-  .optional()
-  .describe("Include test items (default: yes)");
-const testswithParam = z
-  .enum(["hashtags"])
-  .optional()
-  .describe("Include extra test data: 'hashtags' returns tags on test items");
-const runsParam = z
-  .enum(["yes", "no"])
-  .optional()
-  .describe("Include test runs (default: yes)");
-const resultsParam = z
-  .enum(["yes", "no"])
-  .optional()
-  .describe("Include run results (default: yes)");
-const fieldsParam = z
-  .enum(["yes", "no"])
-  .optional()
-  .describe("Include custom field definitions (default: no)");
-const progressParam = z
-  .enum(["yes", "no"])
-  .optional()
-  .describe("Include progress summary (default: no)");
-const retestsParam = z
-  .enum(["yes", "no"])
-  .optional()
-  .describe("Include retest information (default: no)");
-const subfoldersParam = z
-  .enum(["yes", "no"])
-  .optional()
-  .describe("Include subfolders (default: yes)");
-const scriptsQueryParam = z
-  .enum(["yes", "no"])
-  .optional()
-  .describe("Include scripts (default: yes)");
-const scriptFullContentParam = z
-  .enum(["no", "full"])
-  .optional();
-const scriptTestsParam = scriptFullContentParam.describe(
-  "Include test items. For get_script, the API default is full."
-);
-const scriptRunsParam = scriptFullContentParam.describe(
-  "Include test runs. For get_script, the API default is full."
-);
-const scriptResultsParam = scriptFullContentParam.describe(
-  "Include run results. For get_script, the API default is full."
-);
-const scriptFieldsParam = scriptFullContentParam.describe(
-  "Include custom field definitions. For get_script, the API default is full."
-);
-const scriptProgressParam = z
-  .enum(["no", "terse", "full"])
-  .optional()
-  .describe("Include progress summary. For get_script, the API default is terse.");
-const scriptRetestsParam = z
-  .enum(["no", "yes", "terse", "full"])
+  .enum(["none", "full", "list", "text"])
   .optional()
   .describe(
+    "Include test items. Values: none, full, list, text. Default: none for folder endpoints, full for script endpoints."
+  );
+const testswithParam = enumListParam(
+  testswithValues,
+  "Modify how tests are returned when tests are included. Comma-separated values from: none, hashtags, ids, _ids."
+);
+const runsParam = z
+  .enum(["none", "full", "terse"])
+  .optional()
+  .describe(
+    "Include test runs. Values: none, full, terse. Default: none for folder endpoints, full for script endpoints."
+  );
+const resultsParam = z
+  .enum(["none", "full"])
+  .optional()
+  .describe(
+    "Include run results. Values: none, full. Default: none for folder endpoints, full for script endpoints."
+  );
+const fieldsParam = z
+  .enum(["none", "full", "list", "list_shown"])
+  .optional()
+  .describe(
+    "Include field definitions. Values: none, full, list, list_shown. Default: none for folder endpoints, full for script endpoints."
+  );
+const progressParam = z
+  .enum(["none", "terse", "full"])
+  .optional()
+  .describe(
+    "Include progress summary. Values: none, terse, full. Default: none for folder endpoints, terse for script endpoints."
+  );
+const retestsParam = z
+  .enum(["latest", "all"])
+  .optional()
+  .describe("Include retest information. Values: latest, all. Default: latest.");
+const subfoldersParam = z
+  .enum(["none", "all"])
+  .optional()
+  .describe("Include subfolders. Values: none, all. Default: all.");
+const scriptsQueryParam = z
+  .enum(["terse", "full"])
+  .optional()
+  .describe("Include scripts. Values: terse, full. Default: terse for folder endpoints.");
+const scriptTestsParam = testsParam.describe(
+  "Include test items. For get_script, the API default is full."
+);
+const scriptRunsParam = runsParam.describe(
+  "Include test runs. For get_script, the API default is full."
+);
+const scriptResultsParam = resultsParam.describe(
+  "Include run results. For get_script, the API default is full."
+);
+const scriptFieldsParam = fieldsParam.describe(
+  "Include custom field definitions. For get_script, the API default is full."
+);
+const scriptProgressParam = progressParam.describe(
+  "Include progress summary. For get_script, the API default is terse."
+);
+const scriptRetestsParam = retestsParam.describe(
   "Include retest information when supported by the API."
 );
 

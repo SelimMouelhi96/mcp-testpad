@@ -62,25 +62,29 @@ const scriptsQueryParam = z
   .enum(["yes", "no"])
   .optional()
   .describe("Include scripts (default: yes)");
-const scriptContentParam = z
-  .enum(["no", "yes", "terse", "full"])
+const scriptFullContentParam = z
+  .enum(["no", "full"])
   .optional();
-const scriptTestsParam = scriptContentParam.describe(
+const scriptTestsParam = scriptFullContentParam.describe(
   "Include test items. For get_script, the API default is full."
 );
-const scriptRunsParam = scriptContentParam.describe(
+const scriptRunsParam = scriptFullContentParam.describe(
   "Include test runs. For get_script, the API default is full."
 );
-const scriptResultsParam = scriptContentParam.describe(
+const scriptResultsParam = scriptFullContentParam.describe(
   "Include run results. For get_script, the API default is full."
 );
-const scriptFieldsParam = scriptContentParam.describe(
+const scriptFieldsParam = scriptFullContentParam.describe(
   "Include custom field definitions. For get_script, the API default is full."
 );
-const scriptProgressParam = scriptContentParam.describe(
-  "Include progress summary. For get_script, the API default is terse."
-);
-const scriptRetestsParam = scriptContentParam.describe(
+const scriptProgressParam = z
+  .enum(["no", "terse", "full"])
+  .optional()
+  .describe("Include progress summary. For get_script, the API default is terse.");
+const scriptRetestsParam = z
+  .enum(["no", "yes", "terse", "full"])
+  .optional()
+  .describe(
   "Include retest information when supported by the API."
 );
 
@@ -276,7 +280,15 @@ server.tool(
     retests: scriptRetestsParam,
   },
   async ({ script_id, tests, testswith, runs, results, fields, progress, retests }) => {
-    const params = buildParams({ tests, testswith, runs, results, fields, progress, retests });
+    const params = buildParams({
+      tests: tests ?? "full",
+      testswith,
+      runs: runs ?? "full",
+      results: results ?? "full",
+      fields: fields ?? "full",
+      progress: progress ?? "terse",
+      retests,
+    });
     const data = await client.getScript(script_id, params);
     return { content: [{ type: "text", text: JSON.stringify(data, null, 2) }] };
   }
